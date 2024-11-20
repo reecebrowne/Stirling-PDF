@@ -28,6 +28,7 @@ class PdfContainer {
     this.toggleSelectPageVisibility = this.toggleSelectPageVisibility.bind(this);
     this.updatePagesFromCSV = this.updatePagesFromCSV.bind(this);
     this.addFilesBlankAll = this.addFilesBlankAll.bind(this)
+    this.resetPages = this.resetPages.bind(this)
 
     this.pdfAdapters = pdfAdapters;
 
@@ -52,7 +53,8 @@ class PdfContainer {
     window.updatePagesFromCSV = this.updatePagesFromCSV;
     window.updateSelectedPagesDisplay = this.updateSelectedPagesDisplay;
     window.updatePageNumbersAndCheckboxes = this.updatePageNumbersAndCheckboxes;
-    window.addFilesBlankAll = this.addFilesBlankAll
+    window.addFilesBlankAll = this.addFilesBlankAll;
+    window.resetPages = this.resetPages;
 
     const filenameInput = document.getElementById("filename-input");
     const downloadBtn = document.getElementById("export-button");
@@ -103,12 +105,43 @@ class PdfContainer {
       input.multiple = true;
       input.setAttribute("accept", "application/pdf,image/*");
       input.onchange = async (e) => {
+        const startTime = Date.now();
+        let processingTime, errorMessage = null, pageCount = 0;
+        try {
         const files = e.target.files;
 
         this.addFilesFromFiles(files, nextSiblingElement);
         this.updateFilename(files ? files[0].name : "");
         const selectAll = document.getElementById("select-pages-container");
         selectAll.classList.toggle("hidden", false);
+
+        processingTime = Date.now() - startTime;
+
+        pageCount = Array.from(files).reduce((total, file) => {
+            return total + (file.pageCount || 0);
+        }, 0);
+
+          posthog.capture('file_processing', {
+            success: true,
+            file_type: files.length > 1 ? 'multiple' : files[0].type || 'unknown',
+            file_size: Array.from(files).reduce((size, file) => size + file.size, 0),
+            processing_time: processingTime,
+            error_message: errorMessage,
+            pdf_pages: pageCount,
+          });
+      } catch (error) {
+        processingTime = Date.now() - startTime;
+        posthog.capture('file_processing', {
+          success: false,
+          file_type: 'unknown',
+          file_size: 0,
+          processing_time: processingTime,
+          error_message: error.message,
+          pdf_pages: 0,
+        });
+
+        console.error("Error processing files:", error);
+      }
       };
 
       input.click();
@@ -189,9 +222,8 @@ class PdfContainer {
 
     for (var i = 0; i < renderer.pageCount; i++) {
       const div = document.createElement("div");
-
       div.classList.add("page-container");
-
+      div.id = "page-container-" + (i + 1);
       var img = document.createElement("img");
       img.classList.add("page-image");
       const imageSrc = await renderer.renderPage(i);
@@ -200,7 +232,6 @@ class PdfContainer {
       img.rend = renderer;
       img.doc = pdfDocument;
       div.appendChild(img);
-
       this.pdfAdapters.forEach((adapter) => {
         adapter.adapt?.(div);
       });
@@ -462,6 +493,41 @@ class PdfContainer {
     // Update the input field with the formatted page list
     selectedPagesInput.value = this.formatSelectedPages(window.selectedPages);
   }
+
+  resetPages() {
+    const pageContainers = this.pagesContainer.querySelectorAll(".page-container");
+
+    pageContainers.forEach((container, index) => {
+      container.id = "page-container-" + (index + 1);
+    });
+
+    const checkboxes = document.querySelectorAll(".pdf-actions_checkbox");
+    window.selectAll = false;
+    const selectIcon = document.getElementById("select-icon");
+    const deselectIcon = document.getElementById("deselect-icon");
+
+      selectIcon.style.display = "inline";
+      deselectIcon.style.display = "none";
+
+    checkboxes.forEach((checkbox) => {
+
+      checkbox.checked = window.selectAll;
+
+      const pageNumber = Array.from(checkbox.parentNode.parentNode.children).indexOf(checkbox.parentNode) + 1;
+
+      if (checkbox.checked) {
+        if (!window.selectedPages.includes(pageNumber)) {
+          window.selectedPages.push(pageNumber);
+        }
+      } else {
+        const index = window.selectedPages.indexOf(pageNumber);
+        if (index !== -1) {
+          window.selectedPages.splice(index, 1);
+        }
+      }
+    });
+
+    this.updateSelectedPagesDisplay();  }
 
   parsePageRanges(ranges) {
     const pages = new Set();
