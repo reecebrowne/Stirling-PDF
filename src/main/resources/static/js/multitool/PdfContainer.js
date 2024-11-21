@@ -4,6 +4,7 @@ class PdfContainer {
   pagesContainerWrapper;
   pdfAdapters;
   downloadLink;
+  pageCount;
 
   constructor(id, wrapperId, pdfAdapters) {
     this.pagesContainer = document.getElementById(id);
@@ -29,7 +30,7 @@ class PdfContainer {
     this.updatePagesFromCSV = this.updatePagesFromCSV.bind(this);
     this.addFilesBlankAll = this.addFilesBlankAll.bind(this)
     this.removeAllElements = this.removeAllElements.bind(this);
-
+    this.pageCount = 0;
     this.pdfAdapters = pdfAdapters;
 
     this.pdfAdapters.forEach((adapter) => {
@@ -94,6 +95,7 @@ class PdfContainer {
     }
   }
 
+
   addFiles(nextSiblingElement, blank = false) {
     if (blank) {
 
@@ -105,12 +107,39 @@ class PdfContainer {
       input.multiple = true;
       input.setAttribute("accept", "application/pdf,image/*");
       input.onchange = async (e) => {
+        const startTime = Date.now();
+        let processingTime, errorMessage = null
+        try {
         const files = e.target.files;
 
-        this.addFilesFromFiles(files, nextSiblingElement);
+        await this.addFilesFromFiles(files, nextSiblingElement);
         this.updateFilename(files ? files[0].name : "");
         const selectAll = document.getElementById("select-pages-container");
         selectAll.classList.toggle("hidden", false);
+
+        processingTime = Date.now() - startTime;
+
+          posthog.capture('file_processing', {
+            success: true,
+            file_type: files?.[0]?.type || 'unknown',
+            file_size: files? Array.from(files).reduce((size, file) => size + file.size, 0),
+            processing_time: processingTime,
+            error_message: null,
+            pdf_pages: this.pageCount,
+          });
+      } catch (error) {
+        processingTime = Date.now() - startTime;
+        posthog.capture('file_processing', {
+          success: false,
+          file_type: files?.[0]?.type || 'unknown',
+          file_size: files? Array.from(files).reduce((size, file) => size + file.size, 0),
+          processing_time: processingTime,
+          error_message: errorMessage,
+          pdf_pages: this.pageCount,
+        });
+
+        console.error("Error processing files:", error);
+      }
       };
 
       input.click();
@@ -188,7 +217,7 @@ class PdfContainer {
 
   async addPdfFile(file, nextSiblingElement) {
     const { renderer, pdfDocument } = await this.loadFile(file);
-
+    this.pageCount = renderer.pageCount;
     for (var i = 0; i < renderer.pageCount; i++) {
       const div = document.createElement("div");
 
