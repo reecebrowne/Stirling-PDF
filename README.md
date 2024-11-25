@@ -190,13 +190,13 @@ Stirling-PDF currently supports 37 languages!
 
 | Language                                     | Progress                               |
 | -------------------------------------------- | -------------------------------------- |
-| Arabic (العربية) (ar_AR)                        | ![100%](https://geps.dev/progress/100)   |
+| Arabic (العربية) (ar_AR)                        | ![99%](https://geps.dev/progress/99)   |
 | Azerbaijani (Azərbaycan Dili) (az_AZ)        | ![76%](https://geps.dev/progress/76)   |
 | Basque (Euskara) (eu_ES)                     | ![55%](https://geps.dev/progress/55)   |
 | Bulgarian (Български) (bg_BG)                | ![95%](https://geps.dev/progress/95)   |
 | Catalan (Català) (ca_CA)                     | ![89%](https://geps.dev/progress/89)   |
 | Croatian (Hrvatski) (hr_HR)                  | ![97%](https://geps.dev/progress/97)   |
-| Czech (Česky) (cs_CZ)                        | ![97%](https://geps.dev/progress/97)   |
+| Czech (Česky) (cs_CZ)                        | ![96%](https://geps.dev/progress/96)   |
 | Danish (Dansk) (da_DK)                       | ![95%](https://geps.dev/progress/95)   |
 | Dutch (Nederlands) (nl_NL)                   | ![95%](https://geps.dev/progress/95)   |
 | English (English) (en_GB)                    | ![100%](https://geps.dev/progress/100) |
@@ -206,11 +206,11 @@ Stirling-PDF currently supports 37 languages!
 | Greek (Ελληνικά) (el_GR)                     | ![96%](https://geps.dev/progress/96)   |
 | Hindi (हिंदी) (hi_IN)                          | ![94%](https://geps.dev/progress/94)   |
 | Hungarian (Magyar) (hu_HU)                   | ![97%](https://geps.dev/progress/97)   |
-| Indonesian (Bahasa Indonesia) (id_ID)        | ![97%](https://geps.dev/progress/97)   |
+| Indonesian (Bahasa Indonesia) (id_ID)        | ![96%](https://geps.dev/progress/96)   |
 | Irish (Gaeilge) (ga_IE)                      | ![87%](https://geps.dev/progress/87)   |
 | Italian (Italiano) (it_IT)                   | ![99%](https://geps.dev/progress/99)   |
 | Japanese (日本語) (ja_JP)                    | ![84%](https://geps.dev/progress/84)   |
-| Korean (한국어) (ko_KR)                      | ![95%](https://geps.dev/progress/95)   |
+| Korean (한국어) (ko_KR)                      | ![94%](https://geps.dev/progress/94)   |
 | Norwegian (Norsk) (no_NB)                    | ![87%](https://geps.dev/progress/87)   |
 | Polish (Polski) (pl_PL)                      | ![96%](https://geps.dev/progress/96)   |
 | Portuguese (Português) (pt_PT)               | ![96%](https://geps.dev/progress/96)   |
