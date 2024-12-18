@@ -77,7 +77,7 @@
           files = decryptedFiles;
           // Append decrypted files to formData
           decryptedFiles.forEach((file, index) => {
-            formData.set(`fileInput`, file);
+            formData.append(`fileInput`, file);
           });
         }
 
