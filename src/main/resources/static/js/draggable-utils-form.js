@@ -205,11 +205,13 @@ const DraggableUtils = {
         //this.showRotationControls(canvasContainer);
         const input = canvasContainer.querySelector('.form-input');
         window.latestId = input.getAttribute('id');
+        window.suppressEvents = true;
         window.populateEditForm(input.getAttribute('type'), {
-          'id': input.getAttribute('id'), 'height': parseInt(canvasContainer.firstChild.style.height), 'width': parseInt(canvasContainer.firstChild.style.width),
+          'id': input.getAttribute('id'), 'height': parseInt(element.style.height), 'width': parseInt(element.style.width),
           'backgroundPalette': input.getAttribute('backgroundColor'), 'textPalette': input.getAttribute('textColor'), fontSize: parseInt(input.style.fontSize) || "12",
           'font': input.style.fontFamily, 'dropdownValues': input.getAttribute("data-value"), 'value': input.value, 'optionListValues': input.getAttribute("data-value")
-        });
+        }).then(window.suppressEvents = false
+        );
       });
       createdCanvas.appendChild(element);
       // const rotationControls = document.getElementById('rotation-controls');
@@ -946,10 +948,11 @@ window.resize = (target, newWidth, newHeight, maintainRatioEnabled, change) => {
     input.style.width = `${newWidth}px`;
     input.style.height = `${newHeight}px`;
   }
-
+  window.suppressEvents = true;
   window.populateEditForm(input.getAttribute('type'), {
     'id': input.getAttribute('id'), 'height': newHeight, 'width': newWidth,
     'backgroundPalette': input.getAttribute('backgroundColor'), 'textPalette': input.getAttribute('textColor'), fontSize: parseInt(input.style.fontSize) || "12",
     'font': input.style.fontFamily, 'dropdownValues': input.getAttribute("data-value"), 'value': input.value, 'optionListValues': input.getAttribute("data-value")
-  });
+  }).then(window.suppressEvents = false
+  );
 }

@@ -1,5 +1,6 @@
 window.goToFirstOrLastPage = goToFirstOrLastPage;
-
+window.suppressEvents = false;
+window.listenersAttatched = false;
 
 const textConfig = {
   type: 'text',
@@ -235,7 +236,9 @@ window.createForm = (configString) => {
   const targetElement = document.querySelector('#formOptions');
   if (targetElement) {
     targetElement.appendChild(formContainer);
-    setTimeout(() => attachDynamicListeners(config.fields), 0);
+    if (!window.suppressEvents) {
+      attachDynamicListeners(config.fields), 0;
+    }
   } else {
     console.error("Target element not found: formOptions");
   }
@@ -256,11 +259,12 @@ function validateUniqueId(id) {
 }
 
 function attachDynamicListeners(fields) {
-  document.addEventListener("change", function (event) {
-    const target = event.target;
-    const field = fields.find(f => f.id === target.id); // Match the field
+  document.removeEventListener("change", handleChange);
+  function handleChange(event) {
 
-    if (!field) return; // Ignore irrelevant changes
+    const target = event.target;
+    const field = fields.find(f => f.id === target.id);
+    if (!field) return;
 
     if (field.type === 'color') {
       document.getElementById(`${field.id}Label`).style.setProperty('--palette-color', target.value);
@@ -280,10 +284,14 @@ function attachDynamicListeners(fields) {
           targetElement.setAttribute('textColor', target.value);
           break;
         case 'height':
-          window.resize(targetElement.parentElement.parentElement, document.getElementById('width').value, target.value, true, "height");
+          window.resize(targetElement.parentElement.parentElement,
+            document.getElementById('width').value,
+            target.value, true, "height");
           break;
         case 'width':
-          window.resize(targetElement.parentElement.parentElement, target.value, document.getElementById('height').value, true, "width");
+          window.resize(targetElement.parentElement.parentElement,
+            target.value,
+            document.getElementById('height').value, true, "width");
           break;
         case 'fontSize':
           targetElement.style.fontSize = target.value + "px";
@@ -314,7 +322,8 @@ function attachDynamicListeners(fields) {
           break;
       }
     }
-  });
+  }
+  document.addEventListener("change", handleChange);
 }
 
 function addDraggableFromForm(config) {
@@ -414,20 +423,22 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   window.populateEditForm = (type, existingValues) => {
-    formOptionsContainer.innerHTML = "";
-    createForm(type, "#formOptions");
+    return new Promise((resolve) => {
+      formOptionsContainer.innerHTML = "";
+      createForm(type, "#formOptions");
 
-    Object.keys(existingValues).forEach(key => {
-      const input = document.getElementById(key);
-      if (input) {
-        input.defaultValue = existingValues[key];
-        if (input.type === "color") {
-          document.getElementById(`${input.id}Label`).style.setProperty('--palette-color', existingValues[key]);
+      Object.keys(existingValues).forEach(key => {
+        const input = document.getElementById(key);
+        if (input) {
+          input.setAttribute("value", existingValues[key]);
+          if (input.type === "color") {
+            document.getElementById(`${input.id}Label`).style.setProperty('--palette-color', existingValues[key]);
+          }
         }
-      }
+        resolve();
+      })
 
     });
-
   }
 
   createDropdown();
