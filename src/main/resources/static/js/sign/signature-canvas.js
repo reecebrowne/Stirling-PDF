@@ -26,6 +26,7 @@ window.addEventListener("keydown", (event) => {
 
 function undoDraw() {
   const data = signaturePad.toData();
+
   if (data && data.length > 0) {
     const removed = data.pop();
     undoData.push(removed);
@@ -34,6 +35,7 @@ function undoDraw() {
 }
 
 function redoDraw() {
+
   if (undoData.length > 0) {
     const data = signaturePad.toData();
     data.push(undoData.pop());
@@ -50,18 +52,24 @@ function addDraggableFromPad() {
 }
 
 function getCroppedCanvasDataUrl(canvas) {
-  let originalCtx = canvas.getContext('2d', { willReadFrequently: true });
+  let originalCtx = canvas.getContext('2d');
   let originalWidth = canvas.width;
   let originalHeight = canvas.height;
   let imageData = originalCtx.getImageData(0, 0, originalWidth, originalHeight);
 
-  let minX = originalWidth + 1, maxX = -1, minY = originalHeight + 1, maxY = -1;
+  let minX = originalWidth + 1,
+    maxX = -1,
+    minY = originalHeight + 1,
+    maxY = -1,
+    x = 0,
+    y = 0,
+    currentPixelColorValueIndex;
 
-  for (let y = 0; y < originalHeight; y++) {
-    for (let x = 0; x < originalWidth; x++) {
-      let idx = (y * originalWidth + x) * 4;
-      let alpha = imageData.data[idx + 3];
-      if (alpha > 0) {
+  for (y = 0; y < originalHeight; y++) {
+    for (x = 0; x < originalWidth; x++) {
+      currentPixelColorValueIndex = (y * originalWidth + x) * 4;
+      let currentPixelAlphaValue = imageData.data[currentPixelColorValueIndex + 3];
+      if (currentPixelAlphaValue > 0) {
         if (minX > x) minX = x;
         if (maxX < x) maxX = x;
         if (minY > y) minY = y;
@@ -73,14 +81,14 @@ function getCroppedCanvasDataUrl(canvas) {
   let croppedWidth = maxX - minX;
   let croppedHeight = maxY - minY;
   if (croppedWidth < 0 || croppedHeight < 0) return null;
-  let cutImageData = originalCtx.getImageData(minX, minY, croppedWidth, croppedHeight);
+  let cuttedImageData = originalCtx.getImageData(minX, minY, croppedWidth, croppedHeight);
 
-  let croppedCanvas = document.createElement('canvas');
-  let croppedCtx = croppedCanvas.getContext('2d');
+  let croppedCanvas = document.createElement('canvas'),
+    croppedCtx = croppedCanvas.getContext('2d');
 
   croppedCanvas.width = croppedWidth;
   croppedCanvas.height = croppedHeight;
-  croppedCtx.putImageData(cutImageData, 0, 0);
+  croppedCtx.putImageData(cuttedImageData, 0, 0);
 
   return croppedCanvas.toDataURL();
 }
@@ -106,20 +114,10 @@ function resizeCanvas() {
   signaturePad.clear();
 }
 
-const debounce = (fn, delay = 100) => {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-};
-
-const debouncedResize = debounce(resizeCanvas, 200);
-
-new IntersectionObserver((entries) => {
+new IntersectionObserver((entries, observer) => {
   if (entries.some((entry) => entry.intersectionRatio > 0)) {
-    debouncedResize();
+    resizeCanvas();
   }
 }).observe(signaturePadCanvas);
 
-new ResizeObserver(debouncedResize).observe(signaturePadCanvas);
+new ResizeObserver(resizeCanvas).observe(signaturePadCanvas);
